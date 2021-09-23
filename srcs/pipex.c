@@ -6,7 +6,7 @@
 /*   By: junylee <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/13 15:59:21 by junylee           #+#    #+#             */
-/*   Updated: 2021/09/15 15:53:40 by junylee          ###   ########.fr       */
+/*   Updated: 2021/09/20 21:53:06 by junylee          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,11 +59,12 @@ char	**ret_path(char **envp)
 	return (NULL);
 }
 
-void	excute_cmd(char *argv, char **envp)
+int	excute_cmd(char *argv, char **envp)
 {	
 	int i;
 	char **path;
 	char **cmd;
+	char *temp_path;
 	char *full_cmd;
 
 	i = 0;
@@ -71,13 +72,21 @@ void	excute_cmd(char *argv, char **envp)
 	path = ret_path(envp);
 	while (path[i])
 	{
-		full_cmd = ft_strjoin(path[i], "/");
-		full_cmd = ft_strjoin(full_cmd, argv);
-		execve(full_cmd, cmd, NULL);
+		temp_path = ft_strjoin(path[i], "/");
+		full_cmd = ft_strjoin(temp_path, cmd[0]);
+		if (access(full_cmd, F_OK) == 0)
+		{	
+			if (execve(full_cmd, cmd, envp) == ERROR)
+				return (ERROR);
+			free(temp_path);
+			free(full_cmd);
+			return (SUCCESS);
+		}
+		free(temp_path);
 		free(full_cmd);
 		i++;
 	}
-	perror(cmd[0]);
+	return (ERROR);
 }
 
 void dup_pipe(int fd[2], int io)
@@ -94,7 +103,10 @@ int main(int argc, char **argv, char **envp)
 	pid_t	pid;
 
 	if (argc != 5)
+	{
+		perror("Not exact arguments\n");
 		return (1);
+	}
 	if (pipe(fd) == -1)
 		return (1);
 	pid = fork();
@@ -108,9 +120,18 @@ int main(int argc, char **argv, char **envp)
 	{
 		//parent process
 		waitpid(pid, &status, 0);
+		if (WEXITSTATUS(status) == 1)
+		{
+			perror("Child ERROR");
+			exit(1);
+		}
 		redirect_out(argv[4]);
 		dup_pipe(fd, STDIN_FILENO);
-		excute_cmd(argv[3], envp);
+		if (excute_cmd(argv[3], envp) == ERROR)
+		{	
+			perror(argv[3]);
+			exit(1);
+		}
 	}
 	else
 	{
@@ -122,7 +143,11 @@ int main(int argc, char **argv, char **envp)
 		}
 		redirect_in(argv[1]);
 		dup_pipe(fd, STDOUT_FILENO);
-		excute_cmd(argv[2], envp);
+		if (excute_cmd(argv[2], envp) == ERROR)
+		{
+			perror(argv[2]);
+			exit(1);
+		}
 	}
 	return (0);
 }

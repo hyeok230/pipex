@@ -6,7 +6,7 @@
 #    By: junylee <junylee@student.42seoul.kr>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/09/15 14:44:26 by junylee           #+#    #+#              #
-#    Updated: 2021/09/26 15:03:04 by junylee          ###   ########.fr        #
+#    Updated: 2021/09/26 18:08:56 by junylee          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,6 +33,8 @@ SHARED_SRC_LIST 	= $(D_UT)ft_split.c\
 					  $(D_UT)ft_strlen.c\
 					  $(D_UT)ft_strncmp.c\
 					  $(D_UT)ft_memset.c\
+					  check.c\
+					  excute.c\
 
 SOURCES				= $(addprefix $(FOLDER), pipex.c)
 BONUS				= $(addprefix $(FOLDER), pipex_bonus.c)
